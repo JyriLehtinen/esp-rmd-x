@@ -1,12 +1,16 @@
 #include "rmd_x.h" 
 
 
+#define CAN_RX_PIN 16
+#define CAN_TX_PIN 17
+
+
 int8_t rmd_read_pid_data(uint32_t id, rmd_status_t *rmd_h, int8_t tx_only) {
 	uint8_t data[8] = {0};
 
 	data[0] = RMD_READ_PID_DATA;
 
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -29,7 +33,7 @@ int8_t rmd_write_pid_data_to_ram(uint32_t id, rmd_status_t *rmd_h, int8_t tx_onl
 	data[6] = rmd_h->iqPidKp;
 	data[7] = rmd_h->iqPidKi;
 
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -45,7 +49,7 @@ int8_t rmd_motor_stop(uint32_t id, rmd_status_t *rmd_h, int8_t tx_only) {
 
 	data[0] = RMD_MOTOR_STOP;
 	//return tx_twai_msg(id, data);
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -66,7 +70,7 @@ int8_t rmd_motor_off(uint32_t id, rmd_status_t *rmd_h, int8_t tx_only) {
 	data[6] = 0x00;
 	data[7] = 0x00;
 	// return tx_twai_msg(id, data);
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -83,7 +87,7 @@ int8_t rmd_write_encoder_offset(uint32_t id, rmd_status_t *rmd_h, uint16_t offse
 	memcpy(&data[6], &offset, sizeof(uint16_t));
 	
 	// return tx_twai_msg(id, data);
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -112,7 +116,7 @@ int8_t rmd_set_position(uint32_t id, rmd_status_t *rmd_h, int32_t new_position, 
 		memcpy(&data[4], &new_position, sizeof(int32_t));
 		
 		/// return tx_twai_msg(id, data);
-		esp_err_t err = tx_twai_msg(id, data);
+		esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 		if (err) {
 			return err;
 		}
@@ -132,7 +136,7 @@ int8_t rmd_set_position_speedlim(uint32_t id, rmd_status_t *rmd_h, int32_t new_p
 	memcpy(&data[4], &new_position, sizeof(int32_t));
 	
 	// return tx_twai_msg(id, data);
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -152,7 +156,7 @@ int8_t rmd_set_rotation(uint32_t id, rmd_status_t *rmd_h, uint16_t position, uin
 	memcpy(&data[4], &position, sizeof(uint16_t));
 	
 	// return tx_twai_msg(id, data);
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -169,7 +173,7 @@ int8_t rmd_get_position(uint32_t id, rmd_status_t *rmd_h, int8_t tx_only) {
 	data[0] = RMD_READ_MULTI_TURNS_ANGLE;
 	
 	twai_clear_receive_queue();
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -191,8 +195,8 @@ int8_t rmd_set_speed(uint32_t id, rmd_status_t *rmd_h, int32_t new_speed, int8_t
 
 	// return tx_twai_msg(id, data);
 
-	esp_err_t err = tx_twai_msg(id, data);
-		if (err) {
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
+			if (err) {
 			return err;
 		}
 
@@ -211,7 +215,7 @@ int8_t rmd_set_torque(uint32_t id, rmd_status_t *rmd_h, int16_t new_torque, int8
 
 	// return tx_twai_msg(id, data);
 
-	esp_err_t err = tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
 	if (err) {
 		return err;
 	}
@@ -368,8 +372,7 @@ int8_t can_read_alerts(void) {
     uint32_t alerts_triggered;
     twai_read_alerts(&alerts_triggered, pdMS_TO_TICKS(0));
     if(alerts_triggered & TWAI_ALERT_ABOVE_ERR_WARN) {
-        printf("Initiating TWAI recovery\n");
-        twai_initiate_recovery();
+        //	
     }
     twai_status_info_t status_info;
     twai_get_status_info(&status_info);
@@ -380,7 +383,7 @@ int8_t can_read_alerts(void) {
 
 
 
-int8_t tx_twai_msg(uint32_t id, uint8_t *data) {
+esp_err_t tx_twai_msg(uint32_t id, uint8_t *data, int32_t *err_counter) {
 	// FIXME find a better solution to ensure memory is not freed before TX is complete
 	const twai_message_t tx_msg  = {.data_length_code = 8, .identifier = id, .extd = 0}; 
 
@@ -394,12 +397,26 @@ int8_t tx_twai_msg(uint32_t id, uint8_t *data) {
 
 
 	//if (twai_transmit(&tx_message, pdMS_TO_TICKS(RMD_CAN_TX_TIMEOUT)) == ESP_OK) {
-	if (twai_transmit((const twai_message_t *) &tx_msg, pdMS_TO_TICKS(0)) == ESP_OK) {
-		return 0;
+	esp_err_t err =  twai_transmit((const twai_message_t *) &tx_msg, pdMS_TO_TICKS(0));
+	if (err != ESP_OK) {
+		printf("Failed to queue message for transmission, err: %d\n", err);
+		*err_counter = (*err_counter)+1;
 	} else {
-		printf("Failed to queue message for transmission\n");
-		return 1;
+		*err_counter = 0;
 	}
+	
+	if (*err_counter > CAN_ERR_RELOAD_LIM) {
+		// Recover the CAN bus if errors have piled up
+		printf("Initiating TWAI driver reinstall\n");
+		*err_counter = 0;
+		twai_driver_uninstall();
+		vTaskDelay(10);
+		conf_twai(CAN_TX_PIN, CAN_RX_PIN);
+		twai_initiate_recovery();
+		
+		
+	}
+	return err;
 }
 
 esp_err_t rmd_receive_message(uint32_t id, rmd_status_t *rmd_h, uint32_t timeout) {

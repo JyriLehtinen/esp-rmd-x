@@ -6,6 +6,7 @@
 #include "driver/twai.h"
 #include <string.h>
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,6 +20,7 @@ extern "C" {
 #define RMD_ENCODER_TO_RADS 62582.270102733
 #define RMD_POS_DEADBAND 	60 // 0,1 degrees
 
+#define CAN_ERR_RELOAD_LIM 20
 #define RMD_CAN_TX_TIMEOUT 10
 #define RMD_WAIT_FOR_RESP 1
 #define RMD_TX_ONLY 0
@@ -93,6 +95,8 @@ typedef struct {
 	int32_t max_pos;	// Multiturn, maximum CCW angle
 	int32_t center_pos; // Center position
 	int32_t min_pos; 	// Multiturn, maximum CW angle
+
+	int32_t error_count;
 } rmd_status_t;
 
 
@@ -114,7 +118,7 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque);
 void conf_twai(uint8_t can_tx_pin, uint8_t can_rx_pin);
 int8_t can_read_alerts(void);
 
-int8_t tx_twai_msg(uint32_t id, uint8_t *data);
+esp_err_t tx_twai_msg(uint32_t id, uint8_t *data, int32_t *err_counter);
 esp_err_t rmd_receive_message(uint32_t id, rmd_status_t *rmd_h, uint32_t timeout);
 int8_t rmd_parse_response(rmd_status_t *rmd_h, uint8_t *data);
 
