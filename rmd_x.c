@@ -100,7 +100,7 @@ int8_t rmd_write_encoder_offset(uint32_t id, rmd_status_t *rmd_h, uint16_t offse
 int8_t rmd_set_position(uint32_t id, rmd_status_t *rmd_h, int32_t new_position, int8_t tx_only) {
 	
 	if( abs(rmd_h->position_ref - new_position) < RMD_POS_DEADBAND) {
-		return 0;
+		new_position = rmd_h->position_ref;
 	} else {
 		if (new_position > rmd_h->max_pos) {
 			new_position = rmd_h->max_pos;
