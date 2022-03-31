@@ -101,29 +101,29 @@ int8_t rmd_set_position(uint32_t id, rmd_status_t *rmd_h, int32_t new_position, 
 	
 	if( abs(rmd_h->position_ref - new_position) < RMD_POS_DEADBAND) {
 		new_position = rmd_h->position_ref;
-	} else {
-		if (new_position > rmd_h->max_pos) {
-			new_position = rmd_h->max_pos;
-		} else if (new_position < rmd_h->min_pos) {
-			new_position = rmd_h->min_pos;
-		}
+	}
 
-		uint8_t data[8] = {0};
+	if (new_position > rmd_h->max_pos) {
+		new_position = rmd_h->max_pos;
+	} else if (new_position < rmd_h->min_pos) {
+		new_position = rmd_h->min_pos;
+	}
 
-		rmd_h->position_ref = new_position;
+	uint8_t data[8] = {0};
 
-		data[0] = RMD_POSITION_CLOSED_LOOP_1;
-		memcpy(&data[4], &new_position, sizeof(int32_t));
-		
-		/// return tx_twai_msg(id, data);
-		esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
-		if (err) {
-			return err;
-		}
+	rmd_h->position_ref = new_position;
 
-		err = rmd_receive_message(id, rmd_h, 5);
+	data[0] = RMD_POSITION_CLOSED_LOOP_1;
+	memcpy(&data[4], &new_position, sizeof(int32_t));
+	
+	/// return tx_twai_msg(id, data);
+	esp_err_t err = tx_twai_msg(id, data, &(rmd_h->error_count));
+	if (err) {
 		return err;
 	}
+
+	err = rmd_receive_message(id, rmd_h, 5);
+	return err;
 }
 
 int8_t rmd_set_position_speedlim(uint32_t id, rmd_status_t *rmd_h, int32_t new_position, uint16_t speed_lim, int8_t tx_only) {
@@ -243,7 +243,7 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	// Positive rotation (Counter clockwise) 
 	rmd_set_torque(id, rmd_h, torq, RMD_WAIT_FOR_RESP);
 	vTaskDelay(get_pos_wait);
-	while (rmd_h->torque = 0) { // Wait here until we get a response from the RMD-X
+	while (rmd_h->torque == 0) { // Wait here until we get a response from the RMD-X
 		rmd_get_position(id, rmd_h, RMD_WAIT_FOR_RESP);
 		vTaskDelay(get_pos_wait);
 	}
@@ -282,7 +282,7 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	// Negative rotation (Clockwise)
 	rmd_set_torque(id, rmd_h, -torq, RMD_WAIT_FOR_RESP);
 	vTaskDelay(get_pos_wait);
-	while (rmd_h->torque = 0) { // Wait here until we get a response from the RMD-X
+	while (rmd_h->torque == 0) { // Wait here until we get a response from the RMD-X
 		rmd_get_position(id, rmd_h, RMD_WAIT_FOR_RESP);
 		vTaskDelay(get_pos_wait);
 	}
@@ -332,7 +332,7 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 
 	rmd_set_position(id, rmd_h, rmd_h->center_pos, RMD_WAIT_FOR_RESP);
 	//rmd_motor_off(id, rmd_h, RMD_WAIT_FOR_RESP);
-	vTaskDelay(get_pos_wait);
+	vTaskDelay(get_pos_wait*5);
 	//rmd_get_position(id, rmd_h, RMD_WAIT_FOR_RESP);
 	//rmd_set_position(id, rmd_h, rmd_h->multiturn_pos, RMD_WAIT_FOR_RESP);
 	
@@ -342,6 +342,8 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	rmd_h->min_pos = (rmd_h->center_pos - diff/2)  + clearance;
 	rmd_h->max_pos = (rmd_h->center_pos + diff/2)  - clearance;
 	
+	rmd_set_position(id, rmd_h, rmd_h->center_pos, RMD_WAIT_FOR_RESP);
+	rmd_h->encoder_center = rmd_h->encoder_pos;
 
 	vTaskDelay(get_pos_wait*10);
 	return 0;
