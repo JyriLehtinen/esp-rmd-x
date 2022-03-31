@@ -96,6 +96,8 @@ typedef struct {
 	int32_t center_pos; // Center position
 	int32_t min_pos; 	// Multiturn, maximum CW angle
 
+	uint16_t encoder_center; // Encoder value at center position
+
 	int32_t error_count;
 } rmd_status_t;
 
