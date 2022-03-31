@@ -343,7 +343,7 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	rmd_h->max_pos = (rmd_h->center_pos + diff/2)  - clearance;
 	
 	rmd_set_position(id, rmd_h, rmd_h->center_pos, RMD_WAIT_FOR_RESP);
-	rmd_h->encoder_center = rmd_h->encoder_pos;
+	rmd_h->encoder_center = rmd_h->encoder_multiturn;
 
 	vTaskDelay(get_pos_wait*10);
 	return 0;
@@ -465,7 +465,10 @@ int8_t rmd_parse_response(rmd_status_t *rmd_h, uint8_t *data) {
                 rmd_h->motor_temp 	= data[1];
 				rmd_h->torque 		= (int16_t)( (data[2]<<4) + (data[3]<<12) ) / 16;
 				rmd_h->speed 		= (int16_t)( data[4] + (data[5]<<8));
-				rmd_h->encoder_pos =  data[6] + (data[7]<<8);
+
+				uint16_t new_encoder = data[6] + (data[7]<<8);
+				rmd_h->encoder_multiturn += (int16_t) (new_encoder - rmd_h->encoder_pos);
+				rmd_h->encoder_pos =  new_encoder;
 
 				return 0;
 

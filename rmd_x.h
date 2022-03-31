@@ -96,7 +96,9 @@ typedef struct {
 	int32_t center_pos; // Center position
 	int32_t min_pos; 	// Multiturn, maximum CW angle
 
-	uint16_t encoder_center; // Encoder value at center position
+	// WARNING! These only work when there is a maximum of 1/12 turn between RMD encoder responses
+	int32_t encoder_multiturn; // Multiturn value of the encoder
+	int32_t encoder_center; // Encoder multiturn value at center position
 
 	int32_t error_count;
 } rmd_status_t;
