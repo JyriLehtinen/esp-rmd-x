@@ -231,7 +231,7 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	const int16_t max_speed = 10000;
 	const int32_t pos_thresh = 500;
 	const int32_t clearance = 1000; // Set the maximum angle this much smaller
-	const int low_speed_count_limit = 50;
+	const int low_speed_count_limit = 25;
 	const int32_t max_search_angle = 6*180*100; // motor 0.01 deg/LSB, gear ratio 6:1
 
 	int16_t torq = max_torque;
@@ -243,6 +243,11 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	// Positive rotation (Counter clockwise) 
 	rmd_set_torque(id, rmd_h, torq, RMD_WAIT_FOR_RESP);
 	vTaskDelay(get_pos_wait);
+	while (rmd_h->torque = 0) { // Wait here until we get a response from the RMD-X
+		rmd_get_position(id, rmd_h, RMD_WAIT_FOR_RESP);
+		vTaskDelay(get_pos_wait);
+	}
+
 	int low_speed_count = 0;
 	do  { 
 		rmd_set_torque(id, rmd_h, torq, RMD_WAIT_FOR_RESP);
@@ -271,12 +276,16 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	rmd_motor_stop(id, rmd_h, RMD_WAIT_FOR_RESP);
 	rmd_h->max_pos = rmd_h->multiturn_pos;
 	
-	vTaskDelay(get_pos_wait*10);
+	vTaskDelay(get_pos_wait*5);
 
 	torq = max_torque;
 	// Negative rotation (Clockwise)
 	rmd_set_torque(id, rmd_h, -torq, RMD_WAIT_FOR_RESP);
 	vTaskDelay(get_pos_wait);
+	while (rmd_h->torque = 0) { // Wait here until we get a response from the RMD-X
+		rmd_get_position(id, rmd_h, RMD_WAIT_FOR_RESP);
+		vTaskDelay(get_pos_wait);
+	}
 
 	
 	low_speed_count=0;
