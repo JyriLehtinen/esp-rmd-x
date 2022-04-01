@@ -343,6 +343,7 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	rmd_h->max_pos = (rmd_h->center_pos + diff/2)  - clearance;
 	
 	rmd_set_position(id, rmd_h, rmd_h->center_pos, RMD_WAIT_FOR_RESP);
+	rmd_h->encoder_multiturn = 0;
 	rmd_h->encoder_center = rmd_h->encoder_multiturn;
 
 	vTaskDelay(get_pos_wait*10);
