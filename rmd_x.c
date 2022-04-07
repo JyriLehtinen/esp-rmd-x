@@ -228,7 +228,7 @@ int8_t rmd_set_torque(uint32_t id, rmd_status_t *rmd_h, int16_t new_torque, int8
 int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	const uint32_t get_pos_wait = 100 / portTICK_PERIOD_MS;
 	const int16_t min_speed = 2;
-	const int16_t max_speed = 10000;
+	const int16_t max_speed = 18000;
 	const int32_t pos_thresh = 500;
 	const int32_t clearance = 1000; // Set the maximum angle this much smaller
 	const int low_speed_count_limit = 25;
