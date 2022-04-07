@@ -241,10 +241,9 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 	vTaskDelay(get_pos_wait);
 
 	// Positive rotation (Counter clockwise) 
-	rmd_set_torque(id, rmd_h, torq, RMD_WAIT_FOR_RESP);
 	vTaskDelay(get_pos_wait);
 	while (rmd_h->torque == 0) { // Wait here until we get a response from the RMD-X
-		rmd_get_position(id, rmd_h, RMD_WAIT_FOR_RESP);
+		rmd_set_torque(id, rmd_h, torq, RMD_WAIT_FOR_RESP);
 		vTaskDelay(get_pos_wait);
 	}
 
@@ -280,10 +279,9 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 
 	torq = max_torque;
 	// Negative rotation (Clockwise)
-	rmd_set_torque(id, rmd_h, -torq, RMD_WAIT_FOR_RESP);
 	vTaskDelay(get_pos_wait);
 	while (rmd_h->torque == 0) { // Wait here until we get a response from the RMD-X
-		rmd_get_position(id, rmd_h, RMD_WAIT_FOR_RESP);
+		rmd_set_torque(id, rmd_h, -torq, RMD_WAIT_FOR_RESP);
 		vTaskDelay(get_pos_wait);
 	}
 
