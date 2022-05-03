@@ -352,8 +352,8 @@ int8_t rmd_find_limits(uint32_t id, rmd_status_t *rmd_h, int16_t max_torque) {
 void conf_twai(uint8_t can_tx_pin, uint8_t can_rx_pin) {
     //twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(can_tx_pin, can_rx_pin, TWAI_MODE_NO_ACK);
 	twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(can_tx_pin, can_rx_pin, TWAI_MODE_NORMAL);
-    g_config.tx_queue_len = 5;
-    g_config.rx_queue_len = 5;
+    g_config.tx_queue_len = 1;
+    g_config.rx_queue_len = 1;
 	g_config.intr_flags = ESP_INTR_FLAG_LEVEL2;
     g_config.alerts_enabled = TWAI_ALERT_ALL;
     
